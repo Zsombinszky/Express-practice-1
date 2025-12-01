@@ -5,7 +5,7 @@ let tasks = [
   { id: 1, title: "Expresst tanulni!", completed: false },
   { id: 2, title: "Git-et gyakorolni", completed: false },
   { id: 3, title: "Kiteregetni!", completed: false },
-  { id: 3, title: "Bevásárolni!", completed: false },
+  { id: 4, title: "Bevásárolni!", completed: false },
 ];
 
 const app = express(); // app létrehozása
@@ -33,6 +33,69 @@ app.get("/api/tasks/:id", (req, res) => {
   }
 
   res.json(task);
+});
+
+//create
+app.post("/api/tasks", (req, res) => {
+  const { title, completed } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ message: "Title kötelező!" });
+  }
+
+  const newID = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1;
+
+  const task = {
+    id: newID,
+    title: title,
+    completed: completed ?? false,
+  };
+
+  tasks.push(task);
+
+  res.status(201).json(task);
+});
+
+//update
+app.put("/api/tasks/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  const { title, completed } = req.body;
+
+  const taskIndex = tasks.findIndex((t) => t.id === id);
+
+  if (taskIndex === -1) {
+    return res.status(404).json({ message: "Task nem található" });
+  }
+
+  if (!title) {
+    return res.status(400).json({ message: "Title kötelező" });
+  }
+
+  const updatedTask = {
+    id,
+    title,
+    completed: completed ?? false,
+  };
+
+  tasks[taskIndex] = updatedTask;
+
+  res.json(updatedTask);
+});
+
+//delete
+app.delete("/api/tasks/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const taskIndex = tasks.findIndex((t) => t.id === id);
+
+  if (taskIndex === -1) {
+    return res.status(404).json({ message: "Task nem található" });
+  }
+
+  const deletedTask = tasks[taskIndex];
+  tasks.splice(taskIndex, 1);
+
+  res.json({ message: "Task törölve", deleted: deletedTask });
 });
 
 // itt mondjuk meg melyik portra figyeljen az app
